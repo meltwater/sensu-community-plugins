@@ -27,7 +27,7 @@ class Campfire < Sensu::Handler
   end
 
   def campfire
-    Tinder::Campfire.new(settings["campfire"]["account"], :ssl => true, :token => settings["campfire"]["token"])
+    Tinder::Campfire.new(settings["campfire"]["account"], :ssl => true, :ssl_verify => false, :token => settings["campfire"]["token"])
   end
 
   def room
