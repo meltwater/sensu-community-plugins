@@ -60,13 +60,12 @@ class MesosMetrics < Sensu::Plugin::Metric::CLI::Graphite
          default: 5
 
   def run
+    uri = '/metrics/snapshot'
     case config[:mode]
     when 'master'
       port = '5050'
-      uri = '/master/stats.json'
     when 'slave'
       port = '5051'
-      uri = '/slave(1)/stats.json'
     end
     scheme = "#{config[:scheme]}.mesos-#{config[:mode]}"
     begin
