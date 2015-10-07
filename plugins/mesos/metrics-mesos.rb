@@ -70,9 +70,13 @@ class MesosMetrics < Sensu::Plugin::Metric::CLI::Graphite
     scheme = "#{config[:scheme]}"
     begin
       r = RestClient::Resource.new("http://#{config[:server]}:#{port}#{uri}", timeout: config[:timeout]).get
-      JSON.parse(r).each do |k, v|
-        k_copy = k.tr('/', '.')
-        output([scheme, k_copy].join('.'), v)
+      metrics = JSON.parse(r)
+
+      if metrics.fetch("master/elected", 1) != 0
+        metrics.each do |k, v|
+          k_copy = k.tr('/', '.')
+          output([scheme, k_copy].join('.'), v)
+        end
       end
     rescue Errno::ECONNREFUSED
       critical "Mesos #{config[:mode]} is not responding"
