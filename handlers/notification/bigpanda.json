@@ -1,5 +1,12 @@
 {
   "bigpanda": {
-    "token": "TOKEN HERE"
+    "token": "{{TOKEN}}",
+    "app_key": "{{APP_KEY}}"
+  },
+  "handlers": {
+    "bigpanda": {
+      "type": "pipe",
+      "command": "/etc/sensu/handlers/notification/bigpanda.rb"
+    }
   }
 }
