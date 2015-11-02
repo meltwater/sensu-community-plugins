@@ -12,10 +12,10 @@ class HipChatNotif < Sensu::Handler
   end
 
   def handle
-    apiversion = settings["hipchat"]["apiversion"] || 'v1'
+    apiversion = settings["hipchat_haven"]["apiversion"] || 'v1'
     hipchatmsg = HipChat::Client.new(settings["hipchat"]["apikey"], :api_version => apiversion)
-    room = settings["hipchat"]["room"]
-    from = settings["hipchat"]["from"] || 'Sensu'
+    room = settings["hipchat_haven"]["room"]
+    from = settings["hipchat_haven"]["from"] || 'Sensu'
 
     message = @event['check']['notification'] || @event['check']['output']
 
@@ -37,9 +37,9 @@ class HipChatNotif < Sensu::Handler
     begin
       timeout(3) do
         if @event['action'].eql?("resolve")
-          hipchatmsg[room].send(from, "RESOLVED - [#{event_name}] - #{message}.", :color => 'green')
+          hipchatmsg[room].send(from, "RESOLVED - #{message}.", :color => 'green')
         else
-          hipchatmsg[room].send(from, "ALERT - [#{event_name}] - #{message}.", :color => @event['check']['status'] == 1 ? 'yellow' : 'red', :notify => true)
+          hipchatmsg[room].send(from, "#{message}.", :color => @event['check']['status'] == 1 ? 'yellow' : 'red', :notify => true)
         end
       end
     rescue Timeout::Error
