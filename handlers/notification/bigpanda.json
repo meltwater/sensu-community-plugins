@@ -1,5 +1,6 @@
 {
   "bigpanda": {
-    "token": "TOKEN HERE"
+    "token": "{{TOKEN}}",
+    "app_key": "{{APP_KEY}}"
   }
 }
