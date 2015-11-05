@@ -21,7 +21,7 @@ class Mailer < Sensu::Handler
   end
 
   def action_to_string
-   @event['action'].eql?('resolve') ? "RESOLVED" : "ALERT"
+   @event['action'].eql?('resolve') ? "SENSU" : "SENSU ALERT"
   end
 
   def handle
@@ -47,7 +47,7 @@ class Mailer < Sensu::Handler
             Status:  #{@event['check']['status']}
             Occurrences:  #{@event['occurrences']}
           BODY
-    subject = "#{action_to_string} - #{short_name}: #{@event['check']['notification']}"
+    subject = "#{action_to_string} : #{@event['check']['notification']}"
 
     Mail.defaults do
       delivery_method :smtp, {

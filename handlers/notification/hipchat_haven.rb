@@ -37,9 +37,9 @@ class HipChatNotif < Sensu::Handler
     begin
       timeout(3) do
         if @event['action'].eql?("resolve")
-          hipchatmsg[room].send(from, "RESOLVED - #{message}.", :color => 'green')
+          hipchatmsg[room].send(from, "#{message}", :color => 'green')
         else
-          hipchatmsg[room].send(from, "#{message}.", :color => @event['check']['status'] == 1 ? 'yellow' : 'red', :notify => true)
+          hipchatmsg[room].send(from, "#{message}", :color => @event['check']['status'] == 1 ? 'yellow' : 'red', :notify => true)
         end
       end
     rescue Timeout::Error
