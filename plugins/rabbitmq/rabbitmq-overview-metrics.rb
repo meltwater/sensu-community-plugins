@@ -85,6 +85,13 @@ class RabbitMQMetrics < Sensu::Plugin::Metric::CLI::Graphite
     rabbitmq = get_rabbitmq_info
     overview = rabbitmq.overview
 
+    # overview['object_totals']
+    output "#{config[:scheme]}.object_totals.channels.count", overview['object_totals']['channels'], timestamp
+    output "#{config[:scheme]}.object_totals.connections.count", overview['object_totals']['connections'], timestamp
+    output "#{config[:scheme]}.object_totals.consumers.count", overview['object_totals']['consumers'], timestamp
+    output "#{config[:scheme]}.object_totals.exchanges.count", overview['object_totals']['exchanges'], timestamp
+    output "#{config[:scheme]}.object_totals.queues.count", overview['object_totals']['queues'], timestamp
+
     # overview['queue_totals']['messages']
     output "#{config[:scheme]}.queue_totals.messages.count", overview['queue_totals']['messages'], timestamp
     output "#{config[:scheme]}.queue_totals.messages.rate", overview['queue_totals']['messages_details']['rate'], timestamp
