@@ -1,8 +1,0 @@
-{
-  "hipchat_search": {
-    "apikey": "1234abcdefg1234abcdefg",
-    "apiversion": "v1",
-    "room": "Search Team",
-    "from": "Sensu"
-  }
-}
