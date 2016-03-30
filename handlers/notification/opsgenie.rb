@@ -4,18 +4,28 @@
 # handler.
 #
 
-require 'rubygems' if RUBY_VERSION < '1.9.0'
 require 'sensu-handler'
-require "net/https"
-require "uri"
-require "json"
+require 'net/https'
+require 'uri'
+require 'json'
 
 class Opsgenie < Sensu::Handler
+  option :json_config,
+         description: 'Configuration name',
+         short: '-j JSONCONFIG',
+         long: '--json JSONCONFIG',
+         default: 'opsgenie.json'
 
   def handle
+    @json_config = JSON.parse(File.open(config[:json_config]).read)
+    # allow config to be changed by the check
+    if @event['check']['opsgenie']
+      @json_config['opsgenie'].merge!(@event['check']['opsgenie'])
+    end
     description = @event['notification'] || [@event['client']['name'], @event['check']['name'], @event['check']['output'].chomp].join(' : ')
+
     begin
-      timeout(3) do
+      timeout(30) do
         response = case @event['action']
                    when 'create'
                      create_alert(description)
@@ -42,36 +52,44 @@ class Opsgenie < Sensu::Handler
   end
 
   def close_alert
-    post_to_opsgenie(:close, {:alias => event_id})
+    post_to_opsgenie(:close, alias: event_id)
+  end
+
+  def event_tags
+    @event['client']['tags']
   end
 
   def create_alert(description)
     tags = []
-    tags << settings["opsgenie"]["tags"] if settings["opsgenie"]["tags"]
-    tags << "OverwriteQuietHours" if event_status == 2 and settings["opsgenie"]["overwrite_quiet_hours"] == true
-    tags << "unknown" if event_status >= 3
-    tags << "critical" if event_status == 2
-    tags << "warning" if event_status == 1
+    tags << @json_config['opsgenie']['tags'] if @json_config['opsgenie']['tags']
+    tags << 'OverwriteQuietHours' if event_status == 2 && @json_config['opsgenie']['overwrite_quiet_hours'] == true
+    tags << 'unknown' if event_status >= 3
+    tags << 'critical' if event_status == 2
+    tags << 'warning' if event_status == 1
+    unless event_tags.nil?
+      event_tags.each { |tag, value| tags << "#{tag}_#{value}" }
+    end
 
-    post_to_opsgenie(:create, {:alias => event_id, :message => description, :tags => tags.join(",")})
+    recipients = @json_config['opsgenie']['recipients'] if @json_config['opsgenie']['recipients']
+    teams = @json_config['opsgenie']['teams'] if @json_config['opsgenie']['teams']
+
+    post_to_opsgenie(:create, alias: event_id, message: description, tags: tags.join(','), recipients: recipients, teams: teams)
   end
 
   def post_to_opsgenie(action = :create, params = {})
-    params["customerKey"] = settings["opsgenie"]["customerKey"]
-    params["recipients"]  = settings["opsgenie"]["recipients"]
+    params['customerKey'] = @json_config['opsgenie']['customerKey']
 
     # override source if specified, default is ip
-    params["source"] = settings["opsgenie"]["source"] if settings["opsgenie"]["source"]
+    params['source'] = @json_config['opsgenie']['source'] if @json_config['opsgenie']['source']
 
-    uripath = (action == :create) ? "" : "close"
+    uripath = (action == :create) ? '' : 'close'
     uri = URI.parse("https://api.opsgenie.com/v1/json/alert/#{uripath}")
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
     http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-    request = Net::HTTP::Post.new(uri.request_uri, {'Content-Type' =>'application/json'})
+    request = Net::HTTP::Post.new(uri.request_uri, 'Content-Type' => 'application/json')
     request.body = params.to_json
     response = http.request(request)
     JSON.parse(response.body)
   end
-
 end
